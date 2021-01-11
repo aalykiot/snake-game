@@ -5,6 +5,9 @@ use ggez::input::keyboard::*;
 use ggez::timer;
 use ggez::{Context, ContextBuilder, GameResult};
 
+use std::collections::LinkedList;
+use std::iter::FromIterator;
+
 struct GameState {
     snake: Snake,
 }
@@ -28,7 +31,7 @@ impl event::EventHandler for GameState {
     }
 
     fn update(&mut self, ctx: &mut Context) -> GameResult {
-        const TARGET_FPS: u32 = 8;
+        const TARGET_FPS: u32 = 10;
         // update game 8 times per second
         while timer::check_update_time(ctx, TARGET_FPS) {
             self.snake.update(ctx)?;
@@ -44,53 +47,64 @@ impl event::EventHandler for GameState {
         _repeat: bool,
     ) {
         match keycode {
-            KeyCode::Left => self.snake.dir = Direction::Left,
-            KeyCode::Right => self.snake.dir = Direction::Right,
-            KeyCode::Up => self.snake.dir = Direction::Up,
-            KeyCode::Down => self.snake.dir = Direction::Down,
+            KeyCode::Left => self.snake.direction = Direction::Left,
+            KeyCode::Right => self.snake.direction = Direction::Right,
+            KeyCode::Up => self.snake.direction = Direction::Up,
+            KeyCode::Down => self.snake.direction = Direction::Down,
             _ => (),
         }
     }
 }
 
 struct Snake {
-    pos_x: i32,
-    pos_y: i32,
-    dir: Direction,
+    body: LinkedList<(i32, i32)>,
+    direction: Direction,
 }
 
 impl Snake {
     fn new() -> Snake {
         Snake {
-            pos_x: 0,
-            pos_y: 0,
-            dir: Direction::Right,
+            body: LinkedList::from_iter(vec![(5, 5), (4, 5), (3, 5)]),
+            direction: Direction::Right,
         }
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
-        // draw the head os snake
-        let square = graphics::Mesh::new_rectangle(
-            ctx,
-            graphics::DrawMode::fill(),
-            graphics::Rect::new_i32(self.pos_x * 25, self.pos_y * 25, 25, 25),
-            graphics::Color::from_rgb(255, 0, 0),
-        )?;
-
-        graphics::draw(ctx, &square, graphics::DrawParam::default())
+        // iterate throw snake's body
+        for &(x, y) in self.body.iter() {
+            // create square mesh
+            let square = graphics::Mesh::new_rectangle(
+                ctx,
+                graphics::DrawMode::fill(),
+                graphics::Rect::new_i32(x * 25, y * 25, 25, 25),
+                graphics::Color::from_rgb(255, 0, 0),
+            )?;
+            // draw square to canvas
+            graphics::draw(ctx, &square, graphics::DrawParam::default())?;
+        }
+        Ok(())
     }
 
     fn update(&mut self, _ctx: &mut Context) -> GameResult {
-        match self.dir {
-            Direction::Left => self.pos_x -= 1,
-            Direction::Right => self.pos_x += 1,
-            Direction::Up => self.pos_y -= 1,
-            Direction::Down => self.pos_y += 1,
+        // get snake's head
+        let mut head = self.body.front().unwrap().clone();
+
+        match self.direction {
+            Direction::Left => head.0 -= 1,
+            Direction::Right => head.0 += 1,
+            Direction::Up => head.1 -= 1,
+            Direction::Down => head.1 += 1,
         };
+
+        // update snake's body
+        self.body.push_front(head);
+        self.body.pop_back();
+
         Ok(())
     }
 }
 
+#[derive(PartialEq, Clone)]
 enum Direction {
     Left,
     Right,
