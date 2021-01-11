@@ -1,6 +1,7 @@
 use ggez::conf;
 use ggez::event;
 use ggez::graphics;
+use ggez::input::keyboard::*;
 use ggez::timer;
 use ggez::{Context, ContextBuilder, GameResult};
 
@@ -33,6 +34,22 @@ impl event::EventHandler for GameState {
             self.snake.update(ctx)?;
         }
         Ok(())
+    }
+
+    fn key_down_event(
+        &mut self,
+        _ctx: &mut Context,
+        keycode: KeyCode,
+        _keymods: KeyMods,
+        _repeat: bool,
+    ) {
+        match keycode {
+            KeyCode::Left => self.snake.dir = Direction::Left,
+            KeyCode::Right => self.snake.dir = Direction::Right,
+            KeyCode::Up => self.snake.dir = Direction::Up,
+            KeyCode::Down => self.snake.dir = Direction::Down,
+            _ => (),
+        }
     }
 }
 
