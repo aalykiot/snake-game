@@ -47,10 +47,10 @@ impl event::EventHandler for GameState {
         _repeat: bool,
     ) {
         match keycode {
-            KeyCode::Left => self.snake.direction = Direction::Left,
-            KeyCode::Right => self.snake.direction = Direction::Right,
-            KeyCode::Up => self.snake.direction = Direction::Up,
-            KeyCode::Down => self.snake.direction = Direction::Down,
+            KeyCode::Left => self.snake.set_direction(Direction::Left),
+            KeyCode::Right => self.snake.set_direction(Direction::Right),
+            KeyCode::Up => self.snake.set_direction(Direction::Up),
+            KeyCode::Down => self.snake.set_direction(Direction::Down),
             _ => (),
         }
     }
@@ -67,6 +67,10 @@ impl Snake {
             body: LinkedList::from_iter(vec![(5, 5), (4, 5), (3, 5)]),
             direction: Direction::Right,
         }
+    }
+
+    fn set_direction(&mut self, direction: Direction) {
+        self.direction = direction;
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
