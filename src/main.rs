@@ -13,7 +13,19 @@ impl MainState {
 
 impl event::EventHandler for MainState {
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
+        // clear background
         graphics::clear(ctx, graphics::WHITE);
+
+        // draw square
+        let square = graphics::Mesh::new_rectangle(
+            ctx,
+            graphics::DrawMode::fill(),
+            graphics::Rect::new(0.0, 0.0, 25.0, 25.0),
+            graphics::Color::new(1.0, 0.0, 0.0, 1.0),
+        )?;
+        graphics::draw(ctx, &square, graphics::DrawParam::default())?;
+
+        // commit changes to window
         graphics::present(ctx)
     }
 
