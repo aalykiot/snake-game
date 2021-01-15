@@ -5,8 +5,13 @@ use ggez::input::keyboard::*;
 use ggez::timer;
 use ggez::{Context, ContextBuilder, GameResult};
 
+use modulo::Mod;
+
 use std::collections::LinkedList;
 use std::iter::FromIterator;
+
+const GRID_SIZE: (i32, i32) = (20, 20);
+const GRID_CELL_SIZE: (i32, i32) = (25, 25);
 
 struct GameState {
     snake: Snake,
@@ -80,7 +85,12 @@ impl Snake {
             let square = graphics::Mesh::new_rectangle(
                 ctx,
                 graphics::DrawMode::fill(),
-                graphics::Rect::new_i32(x * 25, y * 25, 25, 25),
+                graphics::Rect::new_i32(
+                    x * GRID_CELL_SIZE.0,
+                    y * GRID_CELL_SIZE.1,
+                    GRID_CELL_SIZE.0,
+                    GRID_CELL_SIZE.1,
+                ),
                 graphics::Color::from_rgb(255, 0, 0),
             )?;
             // draw square to canvas
@@ -94,10 +104,10 @@ impl Snake {
         let mut head = self.body.front().unwrap().clone();
 
         match self.direction {
-            Direction::Left => head.0 -= 1,
-            Direction::Right => head.0 += 1,
-            Direction::Up => head.1 -= 1,
-            Direction::Down => head.1 += 1,
+            Direction::Left => head.0 = (head.0 - 1).modulo(GRID_SIZE.0),
+            Direction::Right => head.0 = (head.0 + 1).modulo(GRID_SIZE.0),
+            Direction::Up => head.1 = (head.1 - 1).modulo(GRID_SIZE.1),
+            Direction::Down => head.1 = (head.1 + 1).modulo(GRID_SIZE.1),
         };
 
         // update snake's body

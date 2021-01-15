@@ -1176,6 +1176,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "519df8d6856dcd4b40519947737b408f81be051fc032590659cae5d77d664185"
 
 [[package]]
+name = "modulo"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "53db447cac1df8402bef9a2ccacb0ea0dd1061b935e9e9ab9e5082c516aaada8"
+
+[[package]]
 name = "nalgebra"
 version = "0.18.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1926,6 +1932,7 @@ name = "snake-game"
 version = "0.1.0"
 dependencies = [
  "ggez",
+ "modulo",
 ]
 
 [[package]]
