@@ -4,6 +4,7 @@ use ggez::graphics;
 use ggez::input::keyboard::*;
 use ggez::timer;
 use ggez::{Context, ContextBuilder, GameResult};
+use rand::prelude::*;
 
 use modulo::Mod;
 
@@ -15,12 +16,14 @@ const GRID_CELL_SIZE: (i32, i32) = (25, 25);
 
 struct GameState {
     snake: Snake,
+    food: Food,
 }
 
 impl GameState {
     fn new() -> Self {
         GameState {
             snake: Snake::new(),
+            food: Food::new(),
         }
     }
 }
@@ -31,6 +34,8 @@ impl event::EventHandler for GameState {
         graphics::clear(ctx, graphics::WHITE);
         // render snake
         self.snake.draw(ctx)?;
+        // render food
+        self.food.draw(ctx)?;
         // commit changes to window
         graphics::present(ctx)
     }
@@ -115,6 +120,37 @@ impl Snake {
         self.body.pop_back();
 
         Ok(())
+    }
+}
+
+struct Food {
+    x: i32,
+    y: i32,
+}
+
+impl Food {
+    fn new() -> Food {
+        let mut range = rand::thread_rng();
+        let x = range.gen_range::<i32, _>(0..GRID_SIZE.0);
+        let y = range.gen_range::<i32, _>(0..GRID_SIZE.0);
+        Food { x, y }
+    }
+
+    fn draw(&mut self, ctx: &mut Context) -> GameResult {
+        // create square mesh
+        let square = graphics::Mesh::new_rectangle(
+            ctx,
+            graphics::DrawMode::fill(),
+            graphics::Rect::new_i32(
+                self.x * GRID_CELL_SIZE.0,
+                self.y * GRID_CELL_SIZE.1,
+                GRID_CELL_SIZE.0,
+                GRID_CELL_SIZE.1,
+            ),
+            graphics::Color::from_rgb(246, 185, 59),
+        )?;
+        // draw square to canvas
+        graphics::draw(ctx, &square, graphics::DrawParam::default())
     }
 }
 
