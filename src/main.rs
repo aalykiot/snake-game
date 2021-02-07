@@ -26,16 +26,21 @@ impl GameState {
             food: Food::new(),
         }
     }
+
+    fn reset(&mut self) {
+        self.snake = Snake::new();
+        self.food = Food::new();
+    }
 }
 
 impl event::EventHandler for GameState {
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         // clear window buffer
         graphics::clear(ctx, graphics::WHITE);
-        // render snake
-        self.snake.draw(ctx)?;
         // render food
         self.food.draw(ctx)?;
+        // render snake
+        self.snake.draw(ctx)?;
         // commit changes to window
         graphics::present(ctx)
     }
@@ -44,7 +49,14 @@ impl event::EventHandler for GameState {
         const TARGET_FPS: u32 = 10;
         // update game 8 times per second
         while timer::check_update_time(ctx, TARGET_FPS) {
-            self.snake.update(ctx)?;
+            // update snake
+            self.snake.update(ctx, &self.food)?;
+            // check if snake ate something
+            match self.snake.ate {
+                Some(Ate::Food) => self.food = Food::new(),
+                Some(Ate::Snake) => self.reset(),
+                _ => {}
+            };
         }
         Ok(())
     }
@@ -69,6 +81,7 @@ impl event::EventHandler for GameState {
 struct Snake {
     body: LinkedList<(i32, i32)>,
     direction: Direction,
+    ate: Option<Ate>,
 }
 
 impl Snake {
@@ -76,6 +89,7 @@ impl Snake {
         Snake {
             body: LinkedList::from_iter(vec![(5, 5), (4, 5), (3, 5)]),
             direction: Direction::Right,
+            ate: None,
         }
     }
 
@@ -104,9 +118,10 @@ impl Snake {
         Ok(())
     }
 
-    fn update(&mut self, _ctx: &mut Context) -> GameResult {
+    fn update(&mut self, _ctx: &mut Context, food: &Food) -> GameResult {
         // get snake's head
-        let mut head = self.body.front().unwrap().clone();
+        let prev_head = self.body.pop_front().unwrap();
+        let mut head = prev_head.clone();
 
         match self.direction {
             Direction::Left => head.0 = (head.0 - 1).modulo(GRID_SIZE.0),
@@ -115,9 +130,25 @@ impl Snake {
             Direction::Down => head.1 = (head.1 + 1).modulo(GRID_SIZE.1),
         };
 
+        // reset if snake has eaten
+        self.ate = None;
+
+        // check if snake ate food
+        if head.0 == food.x && head.1 == food.y {
+            self.ate = Some(Ate::Food);
+        }
+        // check if snake ate his own body
+        if self.body.contains(&head) {
+            self.ate = Some(Ate::Snake);
+        }
+
         // update snake's body
+        self.body.push_front(prev_head);
         self.body.push_front(head);
-        self.body.pop_back();
+
+        if self.ate == None {
+            self.body.pop_back();
+        }
 
         Ok(())
     }
@@ -132,7 +163,7 @@ impl Food {
     fn new() -> Food {
         let mut range = rand::thread_rng();
         let x = range.gen_range::<i32, _>(0..GRID_SIZE.0);
-        let y = range.gen_range::<i32, _>(0..GRID_SIZE.0);
+        let y = range.gen_range::<i32, _>(0..GRID_SIZE.1);
         Food { x, y }
     }
 
@@ -160,6 +191,12 @@ enum Direction {
     Right,
     Up,
     Down,
+}
+
+#[derive(PartialEq)]
+enum Ate {
+    Snake,
+    Food,
 }
 
 fn main() -> GameResult {
