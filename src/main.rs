@@ -27,7 +27,7 @@ impl GameState {
         }
     }
 
-    fn reset(&mut self) {
+    fn game_over(&mut self) {
         self.snake = Snake::new();
         self.food = Food::new();
     }
@@ -54,7 +54,7 @@ impl event::EventHandler for GameState {
             // check if snake ate something
             match self.snake.ate {
                 Some(Ate::Food) => self.food = Food::new(),
-                Some(Ate::Snake) => self.reset(),
+                Some(Ate::Snake) => self.game_over(),
                 _ => {}
             };
         }
